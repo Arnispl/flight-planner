@@ -1,5 +1,7 @@
 using FlightPlanner.Handlers;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FlightPlanner
 {
@@ -16,7 +18,12 @@ namespace FlightPlanner
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-                        
+
+            builder.Services.AddDbContextPool<FlightPlannerDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
+            });
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
