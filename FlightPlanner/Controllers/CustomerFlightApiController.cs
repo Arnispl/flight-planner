@@ -19,11 +19,21 @@ namespace FlightPlanner.Controllers
 
         [HttpGet]
         [Route("airports")]
-        public IActionResult SearchAirports([FromQuery] string search)
+        public async Task<IActionResult> SearchAirports([FromQuery] string search)
         {
-            var matchingAirports = _context.Airports
-                .Where(a => a.City.Contains(search) || a.Country.Contains(search) || a.AirportCode.Contains(search))
-                .ToList();
+            var lowerCaseSearch = search.ToLowerInvariant();
+            var matchingAirports = await _context.Airports
+                .Where(a =>
+                    a.City.ToLower().Contains(lowerCaseSearch) ||
+                    a.Country.ToLower().Contains(lowerCaseSearch) ||
+                    a.AirportCode.ToLower().Contains(lowerCaseSearch))
+                .Select(a => new
+                {
+                    a.AirportCode,
+                    a.City,
+                    a.Country
+                })
+                .ToListAsync();
 
             if (!matchingAirports.Any())
             {

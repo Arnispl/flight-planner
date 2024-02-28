@@ -70,6 +70,9 @@ namespace FlightPlanner.Controllers
                     return StatusCode(409);
                 }
 
+                AddOrUpdateAirport(flight.From);
+                AddOrUpdateAirport(flight.To);
+
                 _context.Flights.Add(flight);
                 _context.SaveChanges();
             }
@@ -77,6 +80,21 @@ namespace FlightPlanner.Controllers
             return Created("", flight);
         }
 
+        private void AddOrUpdateAirport(Airport airport)
+        {
+            var existingAirport = _context.Airports.FirstOrDefault(a => a.AirportCode == airport.AirportCode);
+            if (existingAirport == null)
+            {
+                _context.Airports.Add(airport);
+                _context.SaveChanges();
+            }
+            else
+            {
+                existingAirport.City = airport.City;
+                existingAirport.Country = airport.Country;
+                _context.SaveChanges(); 
+            }
+        }
 
         private bool IsFlightValid(Flight flight)
         {
@@ -93,14 +111,16 @@ namespace FlightPlanner.Controllers
         [Route("flights/{id}")]
         public IActionResult DeleteFlight(int id)
         {
-            var flight = _context.Flights.FirstOrDefault(f => f.Id == id);
-
-            if (flight != null)
+            lock (_globalLock)
             {
-                _context.Flights.Remove(flight);
-                _context.SaveChanges(); 
-            }
+                var flight = _context.Flights.FirstOrDefault(f => f.Id == id);
 
+                if (flight != null)
+                {
+                    _context.Flights.Remove(flight);
+                    _context.SaveChanges();
+                }
+            }
             return Ok();
         }
     }
