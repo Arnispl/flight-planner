@@ -1,8 +1,7 @@
 ﻿using FlightPlanner.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
+
 
 namespace FlightPlanner.Controllers
 {
@@ -21,24 +20,12 @@ namespace FlightPlanner.Controllers
         [Route("airports")]
         public async Task<IActionResult> SearchAirports([FromQuery] string search)
         {
-            var lowerCaseSearch = search.ToLowerInvariant();
+            var lowerCaseSearch = search.ToLowerInvariant().Trim();
             var matchingAirports = await _context.Airports
-                .Where(a =>
-                    a.City.ToLower().Contains(lowerCaseSearch) ||
-                    a.Country.ToLower().Contains(lowerCaseSearch) ||
-                    a.AirportCode.ToLower().Contains(lowerCaseSearch))
-                .Select(a => new
-                {
-                    a.AirportCode,
-                    a.City,
-                    a.Country
-                })
-                .ToListAsync();
-
-            if (!matchingAirports.Any())
-            {
-                return NotFound();
-            }
+                .Where(a => a.AirportCode.Contains(lowerCaseSearch)
+                    || a.City.Contains(lowerCaseSearch)
+                    || a.Country.Contains(lowerCaseSearch))
+                 .ToListAsync();
 
             return Ok(matchingAirports);
         }

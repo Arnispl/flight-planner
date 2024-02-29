@@ -3,6 +3,7 @@ using FlightPlanner;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlightPlanner.Migrations
 {
     [DbContext(typeof(FlightPlannerDbContext))]
-    partial class FlightPlannerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240229133130_UpdateAirportCodeColumnName")]
+    partial class UpdateAirportCodeColumnName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +35,7 @@ namespace FlightPlanner.Migrations
                     b.Property<string>("AirportCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
+                        .HasColumnName("airport")
                         .HasAnnotation("Relational:JsonPropertyName", "airport");
 
                     b.Property<string>("City")
