@@ -92,7 +92,7 @@ namespace FlightPlanner.Controllers
             {
                 existingAirport.City = airport.City;
                 existingAirport.Country = airport.Country;
-                _context.SaveChanges(); 
+                _context.SaveChanges();
             }
         }
 
@@ -125,5 +125,6 @@ namespace FlightPlanner.Controllers
         }
     }
 }
+
 
 

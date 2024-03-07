@@ -1,4 +1,4 @@
-using FlightPlanner.Handlers;
+﻿using FlightPlanner.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,9 +19,20 @@ namespace FlightPlanner
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            bool useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+
             builder.Services.AddDbContextPool<FlightPlannerDbContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
+                if (useInMemoryDatabase)
+                {
+                    // Konfigurē izmantot EF Core In-Memory datubāzi
+                    options.UseInMemoryDatabase("flight-planner");
+                }
+                else
+                {
+                    // Konfigurē izmantot SQL Server datubāzi
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
+                }
             });
 
             var app = builder.Build();
@@ -35,9 +46,10 @@ namespace FlightPlanner
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.MapControllers();
-            app.Run();
+
+            app.Run(); // Šeit trūka semikola
         }
     }
 }
+
