@@ -32,6 +32,7 @@ namespace FlightPlanner.Controllers
             {
                 return NotFound();
             }
+
             return Ok(flight);
         }
 
@@ -121,6 +122,7 @@ namespace FlightPlanner.Controllers
                     _context.SaveChanges();
                 }
             }
+
             return Ok();
         }
     }

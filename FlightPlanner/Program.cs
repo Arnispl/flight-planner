@@ -25,12 +25,10 @@ namespace FlightPlanner
             {
                 if (useInMemoryDatabase)
                 {
-                    // Konfigurē izmantot EF Core In-Memory datubāzi
                     options.UseInMemoryDatabase("flight-planner");
                 }
                 else
                 {
-                    // Konfigurē izmantot SQL Server datubāzi
                     options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
                 }
             });
@@ -48,7 +46,7 @@ namespace FlightPlanner
 
             app.MapControllers();
 
-            app.Run(); // Šeit trūka semikola
+            app.Run(); 
         }
     }
 }
