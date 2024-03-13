@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlightPlanner.Data\FlightPlanner.Data.csproj" />
+    <ProjectReference Include="..\FlightPlannerCore\FlightPlanner.Core.csproj" />
+  </ItemGroup>
+
 </Project>

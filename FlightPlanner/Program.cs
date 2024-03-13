@@ -1,7 +1,12 @@
-﻿using FlightPlanner.Handlers;
+﻿using FlightPlanner.Core.Models;
+using FlightPlanner.Core.Services;
+using FlightPlanner.Data;
+using FlightPlanner.Handlers;
+using FlightPlanner.Mapping;
+using FlightPlanner.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace FlightPlanner
 {
@@ -32,6 +37,12 @@ namespace FlightPlanner
                     options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
                 }
             });
+            builder.Services.AddTransient<IFlightPlannerDbContext, FlightPlannerDbContext>();
+            builder.Services.AddTransient<IDbService, DbService>();
+            builder.Services.AddTransient<IEntityService<Airport>, EntityService<Airport>>();
+            builder.Services.AddTransient<IEntityService<Flight>, EntityService<Flight>>();
+            builder.Services.AddTransient<IFlightService, FlightService>();
+            builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             var app = builder.Build();
 

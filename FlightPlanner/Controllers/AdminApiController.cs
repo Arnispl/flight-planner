@@ -1,7 +1,9 @@
-﻿using FlightPlanner.Models;
+﻿using AutoMapper;
+using FlightPlanner.Core.Models;
+using FlightPlanner.Core.Services;
+using FlightPlanner.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace FlightPlanner.Controllers
@@ -11,101 +13,81 @@ namespace FlightPlanner.Controllers
     [ApiController]
     public class AdminApiController : ControllerBase
     {
-        public readonly FlightPlannerDbContext _context;
+        private readonly IFlightService _flightService;
+        private readonly IMapper _mapper;
         private static readonly object _globalLock = new object();
 
-        public AdminApiController(FlightPlannerDbContext context)
+        public AdminApiController(IFlightService flightService, IMapper mapper)
         {
-            _context = context;
+            _flightService = flightService;
+            _mapper = mapper;
         }
 
         [HttpGet]
         [Route("flights/{id}")]
         public IActionResult GetFlight(int id)
         {
-            var flight = _context.Flights
-                .Include(flight => flight.To)
-                .Include(flight => flight.From)
-                .FirstOrDefault(flight => flight.Id == id);
+            var flight = _flightService.GetFullFlightById(id);
 
             if (flight == null)
             {
                 return NotFound();
             }
 
-            return Ok(flight);
+            return Ok(_mapper.Map<AddFlightResponse>(flight));
         }
 
         [HttpPut]
         [Route("flights")]
-        public IActionResult AddFlight(Flight flight)
+        public IActionResult AddFlight(AddFlightRequest request)
         {
-            Console.WriteLine($"Received flight: {JsonSerializer.Serialize(flight)}");
+            Console.WriteLine($"Received flight: {JsonSerializer.Serialize(request)}");
 
-            if (flight == null || !IsFlightValid(flight))
+            if (request == null || !IsFlightValid(request))
             {
                 return BadRequest();
             }
 
-            DateTime departureTime = DateTime.Parse(flight.DepartureTime);
-            DateTime arrivalTime = DateTime.Parse(flight.ArrivalTime);
-
-            if (departureTime >= arrivalTime)
-            {
-                return BadRequest();
-            }
-
-            if (string.Equals(flight.From.AirportCode.Trim(), flight.To.AirportCode.Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                return BadRequest();
-            }
-
+            var flight = _mapper.Map<Flight>(request);
             lock (_globalLock)
             {
-                if (_context.Flights.Any(f => f.Carrier == flight.Carrier &&
-                                          f.From.AirportCode == flight.From.AirportCode &&
-                                          f.To.AirportCode == flight.To.AirportCode &&
-                                          f.DepartureTime == flight.DepartureTime &&
-                                          f.ArrivalTime == flight.ArrivalTime))
+                if (_flightService.Exists(flight))
                 {
                     return StatusCode(409);
                 }
-
-                AddOrUpdateAirport(flight.From);
-                AddOrUpdateAirport(flight.To);
-
-                _context.Flights.Add(flight);
-                _context.SaveChanges();
+                _flightService.Create(flight);
             }
 
-            return Created("", flight);
+            return Created("", (_mapper.Map<AddFlightResponse>(flight)));
         }
 
-        private void AddOrUpdateAirport(Airport airport)
+       /* private void AddOrUpdateAirport(Airport airport)
         {
-            var existingAirport = _context.Airports.FirstOrDefault(a => a.AirportCode == airport.AirportCode);
+            var existingAirport = _flightService.Airports.FirstOrDefault(a => a.AirportCode == airport.AirportCode);
             if (existingAirport == null)
             {
-                _context.Airports.Add(airport);
-                _context.SaveChanges();
+                _flightService.Airports.Add(airport);
+                _flightService.SaveChanges();
             }
             else
             {
                 existingAirport.City = airport.City;
                 existingAirport.Country = airport.Country;
-                _context.SaveChanges();
+                _flightService.SaveChanges();
             }
         }
-
-        private bool IsFlightValid(Flight flight)
+       */
+        private bool IsFlightValid(AddFlightRequest request)
         {
-            return !(string.IsNullOrEmpty(flight.Carrier) ||
-                     string.IsNullOrEmpty(flight.From?.AirportCode) ||
-                     string.IsNullOrEmpty(flight.From?.Country) ||
-                     string.IsNullOrEmpty(flight.From?.City) ||
-                     string.IsNullOrEmpty(flight.To?.AirportCode) ||
-                     string.IsNullOrEmpty(flight.To?.Country) ||
-                     string.IsNullOrEmpty(flight.To?.City));
+            return !(string.IsNullOrEmpty(request.Carrier) ||
+                     string.IsNullOrEmpty(request.From?.Airport) ||
+                     string.IsNullOrEmpty(request.From?.Country) ||
+                     string.IsNullOrEmpty(request.From?.City) ||
+                     string.IsNullOrEmpty(request.To?.Airport) ||
+                     string.IsNullOrEmpty(request.To?.Country) ||
+                     string.IsNullOrEmpty(request.To?.City) ||
+                     DateTime.Parse(request.DepartureTime) >= DateTime.Parse(request.ArrivalTime) ||
+                     request.From.Airport.Trim().Equals(request.To.Airport.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         [HttpDelete]
@@ -114,19 +96,39 @@ namespace FlightPlanner.Controllers
         {
             lock (_globalLock)
             {
-                var flight = _context.Flights.FirstOrDefault(f => f.Id == id);
+                var flight = _flightService.GetFullFlightById(id); // Mainīts uz metodi, kas atgriež lidojumu pēc ID
 
-                if (flight != null)
+                if (flight == null)
                 {
-                    _context.Flights.Remove(flight);
-                    _context.SaveChanges();
+                    return NoContent();// Veiksmīga dzēšana
                 }
+                _flightService.Delete(flight);
+
             }
 
             return Ok();
         }
+
+
+        /*[HttpDelete]
+        [Route("flights/{id}")]
+        public IActionResult DeleteFlight(int id)
+        {
+            lock (_globalLock)
+            {
+                var flight = _flightService.Flights.FirstOrDefault(f => f.Id == id);
+
+                if (flight != null)
+                {
+                    _flightService.Flights.Remove(flight);
+                    _flightService.SaveChanges();
+                }
+            }
+
+            return Ok();*/
     }
 }
+
 
 
 

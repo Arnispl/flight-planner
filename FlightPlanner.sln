@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightPlanner", "FlightPlanner\FlightPlanner.csproj", "{FC4DB0D3-848C-4CB9-84AC-C66FE0CE6956}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlightPlanner", "FlightPlanner\FlightPlanner.csproj", "{FC4DB0D3-848C-4CB9-84AC-C66FE0CE6956}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightPlanner.Core", "FlightPlannerCore\FlightPlanner.Core.csproj", "{06075221-4762-4C6A-A790-945F7A21D242}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightPlanner.Data", "FlightPlanner.Data\FlightPlanner.Data.csproj", "{0B29358D-A5A6-4F6A-BD15-972987CC2637}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightPlanner.Services", "FlightPlanner.Services\FlightPlanner.Services.csproj", "{27D0DEDA-B381-4DA5-A86D-5C22D9AD512C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{FC4DB0D3-848C-4CB9-84AC-C66FE0CE6956}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC4DB0D3-848C-4CB9-84AC-C66FE0CE6956}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC4DB0D3-848C-4CB9-84AC-C66FE0CE6956}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06075221-4762-4C6A-A790-945F7A21D242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06075221-4762-4C6A-A790-945F7A21D242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06075221-4762-4C6A-A790-945F7A21D242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06075221-4762-4C6A-A790-945F7A21D242}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B29358D-A5A6-4F6A-BD15-972987CC2637}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B29358D-A5A6-4F6A-BD15-972987CC2637}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B29358D-A5A6-4F6A-BD15-972987CC2637}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B29358D-A5A6-4F6A-BD15-972987CC2637}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27D0DEDA-B381-4DA5-A86D-5C22D9AD512C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27D0DEDA-B381-4DA5-A86D-5C22D9AD512C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27D0DEDA-B381-4DA5-A86D-5C22D9AD512C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27D0DEDA-B381-4DA5-A86D-5C22D9AD512C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

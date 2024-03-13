@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FlightPlanner.Core.Models;
 
 namespace FlightPlanner.Core.Services
 {
-    internal interface Interface1
+    public interface IDbService
     {
+        IEnumerable<T>GetAll<T>() where T : Entity;
+        T GetById<T>(int id) where T : Entity;
+        void Create<T>(T entity) where T : Entity;
+        void Delete<T>(T entity) where T : Entity;
+        void Update<T>(T entity) where T : Entity;
     }
 }

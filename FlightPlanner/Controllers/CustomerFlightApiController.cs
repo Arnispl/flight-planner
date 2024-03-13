@@ -1,4 +1,5 @@
-﻿using FlightPlanner.Models;
+﻿using FlightPlanner.Core.Models;
+using FlightPlanner.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
