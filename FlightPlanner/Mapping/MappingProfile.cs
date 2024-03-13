@@ -16,6 +16,10 @@ namespace FlightPlanner.Mapping
                 .MapFrom(source => source.Airport));
             CreateMap<AddFlightRequest, Flight>();
             CreateMap<Flight, AddFlightResponse>();
+            CreateMap<Flight, FlightResponse>()
+                .ForMember(destination => destination.From, options => options.MapFrom(source => source.From))
+    .ForMember(destination => destination.To, opt => opt.MapFrom(source => source.To));
+
         }
     }
 }

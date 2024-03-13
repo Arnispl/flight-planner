@@ -61,22 +61,6 @@ namespace FlightPlanner.Controllers
             return Created("", (_mapper.Map<AddFlightResponse>(flight)));
         }
 
-       /* private void AddOrUpdateAirport(Airport airport)
-        {
-            var existingAirport = _flightService.Airports.FirstOrDefault(a => a.AirportCode == airport.AirportCode);
-            if (existingAirport == null)
-            {
-                _flightService.Airports.Add(airport);
-                _flightService.SaveChanges();
-            }
-            else
-            {
-                existingAirport.City = airport.City;
-                existingAirport.Country = airport.Country;
-                _flightService.SaveChanges();
-            }
-        }
-       */
         private bool IsFlightValid(AddFlightRequest request)
         {
             return !(string.IsNullOrEmpty(request.Carrier) ||
@@ -96,36 +80,17 @@ namespace FlightPlanner.Controllers
         {
             lock (_globalLock)
             {
-                var flight = _flightService.GetFullFlightById(id); // Mainīts uz metodi, kas atgriež lidojumu pēc ID
+                var flight = _flightService.GetFullFlightById(id);
 
                 if (flight == null)
                 {
-                    return NoContent();// Veiksmīga dzēšana
+                   return Ok();
                 }
-                _flightService.Delete(flight);
-
+               _flightService.Delete(flight);
             }
 
             return Ok();
         }
-
-
-        /*[HttpDelete]
-        [Route("flights/{id}")]
-        public IActionResult DeleteFlight(int id)
-        {
-            lock (_globalLock)
-            {
-                var flight = _flightService.Flights.FirstOrDefault(f => f.Id == id);
-
-                if (flight != null)
-                {
-                    _flightService.Flights.Remove(flight);
-                    _flightService.SaveChanges();
-                }
-            }
-
-            return Ok();*/
     }
 }
 
