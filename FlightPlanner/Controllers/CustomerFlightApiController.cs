@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
 using FlightPlanner.Core.Models;
 using FlightPlanner.Core.Services;
-using FlightPlanner.Data;
 using FlightPlanner.Models;
-using FlightPlanner.Validations;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace FlightPlanner.Controllers

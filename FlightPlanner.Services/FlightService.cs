@@ -19,7 +19,6 @@ namespace FlightPlanner.Services
                 .SingleOrDefault(flight => flight.Id == id);
         }
 
-
         public bool Exists(Flight flight)
         {
             return _context.Flights.Any(f =>
@@ -29,6 +28,7 @@ namespace FlightPlanner.Services
                 f.DepartureTime == flight.DepartureTime &&
                 f.ArrivalTime == flight.ArrivalTime);
         }
+
         public void ClearData()
         {
             var flights = _context.Flights.ToList();
@@ -39,6 +39,7 @@ namespace FlightPlanner.Services
 
             _context.SaveChanges();
         }
+
         public async Task<List<Airport>> SearchAirports(string search)
         {
             var lowerCaseSearch = search.ToLowerInvariant().Trim();
@@ -48,6 +49,7 @@ namespace FlightPlanner.Services
                             || a.Country.ToLower().Contains(lowerCaseSearch))
                 .ToListAsync();
         }
+
         public PageResult<Flight> SearchFlights(SearchFlightsRequest request)
         {
             var query = _context.Flights.Include(f => f.From).Include(f => f.To).AsQueryable();

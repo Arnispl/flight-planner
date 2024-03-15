@@ -59,8 +59,7 @@ namespace FlightPlanner.Controllers
                 {
                     return StatusCode(409);
                 }
-                _flightService.Create(flight);
-                
+                _flightService.Create(flight);                
 
                 return Created("", (_mapper.Map<AddFlightResponse>(flight)));
             }
