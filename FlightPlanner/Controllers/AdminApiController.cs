@@ -2,9 +2,9 @@
 using FlightPlanner.Core.Models;
 using FlightPlanner.Core.Services;
 using FlightPlanner.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace FlightPlanner.Controllers
 {
@@ -15,12 +15,17 @@ namespace FlightPlanner.Controllers
     {
         private readonly IFlightService _flightService;
         private readonly IMapper _mapper;
-        private static readonly object _globalLock = new object();
+        private readonly IValidator<AddFlightRequest> _validator;
+        private static readonly object _lock = new object();
 
-        public AdminApiController(IFlightService flightService, IMapper mapper)
+        public AdminApiController(
+            IFlightService flightService, 
+            IMapper mapper, 
+            IValidator<AddFlightRequest> validator)
         {
             _flightService = flightService;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -41,44 +46,31 @@ namespace FlightPlanner.Controllers
         [Route("flights")]
         public IActionResult AddFlight(AddFlightRequest request)
         {
-            Console.WriteLine($"Received flight: {JsonSerializer.Serialize(request)}");
-
-            if (request == null || !IsFlightValid(request))
+            var validationResult = _validator.Validate(request);
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
             }
 
             var flight = _mapper.Map<Flight>(request);
-            lock (_globalLock)
+            lock (_lock)
             {
                 if (_flightService.Exists(flight))
                 {
                     return StatusCode(409);
                 }
                 _flightService.Create(flight);
+                
+
+                return Created("", (_mapper.Map<AddFlightResponse>(flight)));
             }
-
-            return Created("", (_mapper.Map<AddFlightResponse>(flight)));
-        }
-
-        private bool IsFlightValid(AddFlightRequest request)
-        {
-            return !(string.IsNullOrEmpty(request.Carrier) ||
-                     string.IsNullOrEmpty(request.From?.Airport) ||
-                     string.IsNullOrEmpty(request.From?.Country) ||
-                     string.IsNullOrEmpty(request.From?.City) ||
-                     string.IsNullOrEmpty(request.To?.Airport) ||
-                     string.IsNullOrEmpty(request.To?.Country) ||
-                     string.IsNullOrEmpty(request.To?.City) ||
-                     DateTime.Parse(request.DepartureTime) >= DateTime.Parse(request.ArrivalTime) ||
-                     request.From.Airport.Trim().Equals(request.To.Airport.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
         [HttpDelete]
         [Route("flights/{id}")]
         public IActionResult DeleteFlight(int id)
         {
-            lock (_globalLock)
+            lock (_lock)
             {
                 var flight = _flightService.GetFullFlightById(id);
 

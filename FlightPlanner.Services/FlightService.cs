@@ -18,6 +18,8 @@ namespace FlightPlanner.Services
                 .Include(flight => flight.To)
                 .SingleOrDefault(flight => flight.Id == id);
         }
+
+
         public bool Exists(Flight flight)
         {
             return _context.Flights.Any(f =>

@@ -3,6 +3,8 @@ using FlightPlanner.Core.Models;
 using FlightPlanner.Core.Services;
 using FlightPlanner.Data;
 using FlightPlanner.Models;
+using FlightPlanner.Validations;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +17,17 @@ namespace FlightPlanner.Controllers
     {
         private readonly IFlightService _flightService;
         private readonly IMapper _mapper;
+        private readonly IValidator<SearchFlightsRequest> _validator;
 
-        public CustomerFlightApiController(IFlightService flightService, IMapper mapper)
+
+        public CustomerFlightApiController(
+            IFlightService flightService, 
+            IMapper mapper,
+            IValidator<SearchFlightsRequest> validator)
         {
             _flightService = flightService;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -37,15 +45,16 @@ namespace FlightPlanner.Controllers
         [Route("flights/search")]
         public IActionResult SearchFlights([FromBody] SearchFlightsRequest request)
         {
-            if (request.From == request.To)
+            var validationResult = _validator.Validate(request);
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
             }
 
             var result = _flightService.SearchFlights(request);
 
             if (result.Items.Count == 0)
-            {                
+            {
                 return Ok(result);
             }
 
