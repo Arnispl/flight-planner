@@ -7,6 +7,8 @@ namespace FlightPlanner.Services
 {
     public class FlightService : EntityService<Flight>, IFlightService
     {
+        private static readonly object _lock = new object();
+
         public FlightService(IFlightPlannerDbContext context) : base(context)
         {
         }
@@ -18,15 +20,42 @@ namespace FlightPlanner.Services
                 .Include(flight => flight.To)
                 .SingleOrDefault(flight => flight.Id == id);
         }
-
-        public bool Exists(Flight flight)
+               
+        public Boolean AddFlight(Flight flight)
         {
-            return _context.Flights.Any(f =>
-                f.Carrier == flight.Carrier &&
-                f.From.AirportCode == flight.From.AirportCode &&
-                f.To.AirportCode == flight.To.AirportCode &&
-                f.DepartureTime == flight.DepartureTime &&
-                f.ArrivalTime == flight.ArrivalTime);
+            lock (_lock)
+            {
+                var exists = _context.Flights.Any(f =>
+                    f.Carrier == flight.Carrier &&
+                    f.From.AirportCode == flight.From.AirportCode &&
+                    f.To.AirportCode == flight.To.AirportCode &&
+                    f.DepartureTime == flight.DepartureTime &&
+                    f.ArrivalTime == flight.ArrivalTime);
+
+                if (!exists)
+                {
+                    _context.Flights.Add(flight);
+                    _context.SaveChanges();
+                    return true; 
+                }
+                else
+                {
+                    return false; 
+                }
+            }
+        }
+
+        public void DeleteFlight(int id)
+        {
+            lock (_lock)
+            {
+                var flight = GetFullFlightById(id);
+                if (flight != null)
+                {
+                    _context.Flights.Remove(flight);
+                    _context.SaveChanges();
+                }
+            }
         }
 
         public void ClearData()

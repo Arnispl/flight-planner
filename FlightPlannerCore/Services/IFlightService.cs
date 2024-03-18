@@ -5,7 +5,8 @@ namespace FlightPlanner.Core.Services
     public interface IFlightService : IEntityService<Flight>
     {
         Flight? GetFullFlightById(int id);
-        bool Exists(Flight flight);
+        Boolean AddFlight(Flight flight);
+        void DeleteFlight(int id);
         void ClearData();
         Task<List<Airport>> SearchAirports(string search);
         PageResult<Flight> SearchFlights(SearchFlightsRequest request);

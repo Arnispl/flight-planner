@@ -16,7 +16,6 @@ namespace FlightPlanner.Controllers
         private readonly IFlightService _flightService;
         private readonly IMapper _mapper;
         private readonly IValidator<AddFlightRequest> _validator;
-        private static readonly object _lock = new object();
 
         public AdminApiController(
             IFlightService flightService, 
@@ -53,15 +52,16 @@ namespace FlightPlanner.Controllers
             }
 
             var flight = _mapper.Map<Flight>(request);
-            lock (_lock)
-            {
-                if (_flightService.Exists(flight))
-                {
-                    return StatusCode(409);
-                }
-                _flightService.Create(flight);                
 
-                return Created("", (_mapper.Map<AddFlightResponse>(flight)));
+            var isAdded = _flightService.AddFlight(flight);
+
+            if (isAdded)
+            {
+                return Created("", _mapper.Map<AddFlightResponse>(flight));
+            }
+            else
+            {
+                return StatusCode(409);
             }
         }
 
@@ -69,17 +69,7 @@ namespace FlightPlanner.Controllers
         [Route("flights/{id}")]
         public IActionResult DeleteFlight(int id)
         {
-            lock (_lock)
-            {
-                var flight = _flightService.GetFullFlightById(id);
-
-                if (flight == null)
-                {
-                   return Ok();
-                }
-               _flightService.Delete(flight);
-            }
-
+            _flightService.DeleteFlight(id);
             return Ok();
         }
     }
