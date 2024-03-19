@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using FlightPlanner.Core.Models;
-using FlightPlanner.Core.Services;
-using FlightPlanner.Models;
-using FluentValidation;
+﻿using FlightPlanner.UseCases.Flights.AddFlight;
+using FlightPlanner.UseCases.Flights.GetFlight;
+using FlightPlanner.UseCases.Models;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using FlightPlanner.Extensions;
+using FlightPlanner.UseCases.Flights.DeleteFlight;
 
 namespace FlightPlanner.Controllers
 {
@@ -13,64 +14,35 @@ namespace FlightPlanner.Controllers
     [ApiController]
     public class AdminApiController : ControllerBase
     {
-        private readonly IFlightService _flightService;
-        private readonly IMapper _mapper;
-        private readonly IValidator<AddFlightRequest> _validator;
+        private readonly IMediator _mediator;
 
-        public AdminApiController(
-            IFlightService flightService, 
-            IMapper mapper, 
-            IValidator<AddFlightRequest> validator)
+        public AdminApiController(IMediator mediator)
         {
-            _flightService = flightService;
-            _mapper = mapper;
-            _validator = validator;
+            _mediator = mediator;
         }
 
         [HttpGet]
         [Route("flights/{id}")]
-        public IActionResult GetFlight(int id)
+        public async Task<IActionResult> GetFlight(int id)
         {
-            var flight = _flightService.GetFullFlightById(id);
-
-            if (flight == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(_mapper.Map<AddFlightResponse>(flight));
+            return (await _mediator.Send(new GetFlightQuery(id)))
+                .ToActionResult();     
         }
 
         [HttpPut]
         [Route("flights")]
-        public IActionResult AddFlight(AddFlightRequest request)
+        public async Task<IActionResult> AddFlight(AddFlightRequest request)
         {
-            var validationResult = _validator.Validate(request);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
-
-            var flight = _mapper.Map<Flight>(request);
-
-            var isAdded = _flightService.AddFlight(flight);
-
-            if (isAdded)
-            {
-                return Created("", _mapper.Map<AddFlightResponse>(flight));
-            }
-            else
-            {
-                return StatusCode(409);
-            }
+            return (await _mediator.Send(new AddFlightComand { AddFlightRequest = request}))
+                .ToActionResult();
         }
 
         [HttpDelete]
         [Route("flights/{id}")]
-        public IActionResult DeleteFlight(int id)
+        public async Task<IActionResult> DeleteFlight(int id)
         {
-            _flightService.DeleteFlight(id);
-            return Ok();
+            return (await _mediator.Send(new DeleteFlightComand { Id = id }))
+                .ToActionResult();
         }
     }
 }

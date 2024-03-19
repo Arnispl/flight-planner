@@ -1,4 +1,4 @@
-﻿namespace FlightPlanner.Models
+﻿namespace FlightPlanner.UseCases.Models
 {
     public class AirportViewModel
     {

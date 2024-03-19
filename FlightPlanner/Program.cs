@@ -2,13 +2,12 @@
 using FlightPlanner.Core.Services;
 using FlightPlanner.Data;
 using FlightPlanner.Handlers;
-using FlightPlanner.Mapping;
 using FlightPlanner.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-
+using FlightPlanner.UseCases;
 namespace FlightPlanner
 {
     public class Program
@@ -47,6 +46,7 @@ namespace FlightPlanner
             builder.Services.AddAutoMapper(assembly);
             builder.Services.AddValidatorsFromAssembly(assembly);
 
+            builder.Services.AddServices();
 
             var app = builder.Build();
 

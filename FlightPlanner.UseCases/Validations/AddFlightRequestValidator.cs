@@ -1,7 +1,7 @@
-﻿using FlightPlanner.Models;
+﻿using FlightPlanner.UseCases.Models;
 using FluentValidation;
 
-namespace FlightPlanner.Validations
+namespace FlightPlanner.UseCases.Validations
 {
     public class AddFlightRequestValidator : AbstractValidator<AddFlightRequest>
     {

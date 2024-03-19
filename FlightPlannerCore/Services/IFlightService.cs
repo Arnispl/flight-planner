@@ -7,7 +7,6 @@ namespace FlightPlanner.Core.Services
         Flight? GetFullFlightById(int id);
         Boolean AddFlight(Flight flight);
         void DeleteFlight(int id);
-        void ClearData();
         Task<List<Airport>> SearchAirports(string search);
         PageResult<Flight> SearchFlights(SearchFlightsRequest request);
     }

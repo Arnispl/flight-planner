@@ -1,7 +1,8 @@
-﻿namespace FlightPlanner.Models
+﻿namespace FlightPlanner.UseCases.Models
 {
-    public class AddFlightRequest
+    public class AddFlightResponse
     {
+        public int Id { get; set; }
         public required AirportViewModel From { get; set; }
         public required AirportViewModel To { get; set; }
         public required string Carrier { get; set; }
