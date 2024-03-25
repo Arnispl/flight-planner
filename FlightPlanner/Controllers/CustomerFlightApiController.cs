@@ -1,6 +1,9 @@
-﻿using FlightPlanner.Models;
+﻿using FlightPlanner.Core.Models;
+using FlightPlanner.Extensions;
+using FlightPlanner.UseCases.Airports;
+using FlightPlanner.UseCases.Flights;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace FlightPlanner.Controllers
@@ -9,86 +12,38 @@ namespace FlightPlanner.Controllers
     [ApiController]
     public class CustomerFlightApiController : ControllerBase
     {
-        private readonly FlightPlannerDbContext _context;
+        private readonly IMediator _mediator;
 
-        public CustomerFlightApiController(FlightPlannerDbContext context)
-        {
-            _context = context;
+        public CustomerFlightApiController(IMediator mediator)
+        {          
+            _mediator = mediator;
         }
 
         [HttpGet]
         [Route("airports")]
         public async Task<IActionResult> SearchAirports([FromQuery] string search)
         {
-            var lowerCaseSearch = search.ToLowerInvariant().Trim();
-            var matchingAirports = await _context.Airports
-                .Where(a => a.AirportCode.Contains(lowerCaseSearch)
-                    || a.City.Contains(lowerCaseSearch)
-                    || a.Country.Contains(lowerCaseSearch))
-                 .ToListAsync();
-
-            return Ok(matchingAirports);
+            return (await _mediator.Send(new SearchAirportsQuery(search)))
+                .ToActionResult();
         }
 
         [HttpPost]
         [Route("flights/search")]
-        public IActionResult SearchFlights([FromBody] SearchFlightsRequest request)
+        public async Task<IActionResult> SearchFlights([FromBody] SearchFlightsRequest request)
         {
-            if (request == null ||
-                (string.IsNullOrEmpty(request.From) && string.IsNullOrEmpty(request.To) && !request.Date.HasValue) ||
-                (request.From == request.To))
-            {
-                return BadRequest();
-            }
-
-            var query = _context.Flights.Include(f => f.From).Include(f => f.To).AsQueryable();
-
-            if (!string.IsNullOrEmpty(request.From))
-            {
-                query = query.Where(f => f.From.AirportCode.Contains(request.From));
-            }
-
-            if (!string.IsNullOrEmpty(request.To))
-            {
-                query = query.Where(f => f.To.AirportCode.Contains(request.To));
-            }
-
-            if (request.Date.HasValue)
-            {
-                var date = request.Date.Value.Date;
-
-                query = query.Where(f => DateTime.Parse(f.DepartureTime).Date == date);
-            }
-
-            var flights = query.ToList();
-
-            var result = new PageResult<Flight>
-            {
-                Page = 0,
-                TotalItems = flights.Count,
-                Items = flights
-            };
-
-            return Ok(result);
+            return (await _mediator.Send(new SearchFlightsCommand(request)))
+                .ToActionResult();
         }
-
-        [HttpGet]
-        [Route("flights/{id}")]
-        public IActionResult FindFlightById(int id)
-        {
-            var flight = _context.Flights
-                .Include(f => f.From)
-                .Include(f => f.To)
-                .FirstOrDefault(f => f.Id == id);
-
-            if (flight == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(flight);
-        }
+                
+         [HttpGet]
+         [Route("flights/{id}")]
+         public async Task<IActionResult> FindFlightById(int id)
+         {
+            return (await _mediator.Send(new FindFlightByIdQuery(id)))
+                .ToActionResult();
+         }
     }
 }
+
 
 

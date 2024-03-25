@@ -1,16 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace FlightPlanner.Models
+namespace FlightPlanner.Core.Models
 {
-    public class Airport
-    {
-        [JsonIgnore]
-        public int Id { get; set; }
+    public class Airport:Entity
+    {       
         public required string Country { get; set; }
         public required string City { get; set; }
-        
-        [JsonPropertyName("airport")]
         public required string AirportCode { get; set; }
     }
 }

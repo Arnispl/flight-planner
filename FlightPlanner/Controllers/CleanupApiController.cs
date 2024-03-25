@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FlightPlanner.Extensions;
+using FlightPlanner.UseCases.Cleanup;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlanner.Controllers
 {
@@ -6,22 +9,19 @@ namespace FlightPlanner.Controllers
     [ApiController]
     public class CleanupApiController : ControllerBase
     {
-        public readonly FlightPlannerDbContext? _context;
+        public readonly IMediator _mediator;
 
-        public CleanupApiController(FlightPlannerDbContext context)
-        {
-            _context = context;
+        public CleanupApiController(IMediator mediator)
+        {  
+            _mediator = mediator; 
         }
-
+      
         [HttpPost]
         [Route("clear")]
-        public IActionResult Clear()
+        public async Task<IActionResult> Clear()
         {
-            _context.Flights.RemoveRange(_context.Flights);
-            _context.Airports.RemoveRange(_context.Airports);
-            _context.SaveChanges();
-
-            return Ok();
+            return (await _mediator.Send(new DataCleanupComand()))
+                .ToActionResult();
         }
     }
 }

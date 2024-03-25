@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace FlightPlanner.Migrations
+namespace FlightPlanner.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Init : Migration
@@ -52,8 +52,7 @@ namespace FlightPlanner.Migrations
                         principalTable: "Airports",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
-
-        });
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Flights_FromId",
