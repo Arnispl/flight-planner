@@ -1,7 +1,7 @@
 ﻿using FlightPlanner.Models;
-using FlightPlanner.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace FlightPlanner.Controllers
@@ -11,78 +11,122 @@ namespace FlightPlanner.Controllers
     [ApiController]
     public class AdminApiController : ControllerBase
     {
+        public readonly FlightPlannerDbContext _context;
+        private static readonly object _globalLock = new object();
+
+        public AdminApiController(FlightPlannerDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         [Route("flights/{id}")]
         public IActionResult GetFlight(int id)
         {
-            var flight = FlightStorage.GetFlightById(id);
+            var flight = _context.Flights
+                .Include(flight => flight.To)
+                .Include(flight => flight.From)
+                .FirstOrDefault(flight => flight.Id == id);
+
             if (flight == null)
             {
                 return NotFound();
             }
+
             return Ok(flight);
         }
+
         [HttpPut]
         [Route("flights")]
         public IActionResult AddFlight(Flight flight)
         {
             Console.WriteLine($"Received flight: {JsonSerializer.Serialize(flight)}");
 
-            if (flight == null)
+            if (flight == null || !IsFlightValid(flight))
             {
                 return BadRequest();
             }
 
-            if (
-                string.IsNullOrEmpty(flight.Carrier) ||
-                string.IsNullOrEmpty(flight.From.AirportCode) ||
-                string.IsNullOrEmpty(flight.From.Country) ||
-                string.IsNullOrEmpty(flight.From.City) ||
-                string.IsNullOrEmpty(flight.To.AirportCode) ||
-                string.IsNullOrEmpty(flight.To.Country) ||
-                string.IsNullOrEmpty(flight.To.City) ||
-                string.IsNullOrEmpty(flight.To.Country)
-               )
+            DateTime departureTime = DateTime.Parse(flight.DepartureTime);
+            DateTime arrivalTime = DateTime.Parse(flight.ArrivalTime);
+
+            if (departureTime >= arrivalTime)
             {
                 return BadRequest();
             }
 
-            if (FlightStorage.FlightExists(flight))
-            {
-                return Conflict();
-            }
-
-            var fromAirport = flight.From.AirportCode.Trim();
-            var toAirport = flight.To.AirportCode.Trim();
-
-            if (string.Equals(fromAirport, toAirport, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(flight.From.AirportCode.Trim(), flight.To.AirportCode.Trim(), StringComparison.OrdinalIgnoreCase))
             {
                 return BadRequest();
             }
 
-            if (DateTime.Parse(flight.DepartureTime) >= DateTime.Parse(flight.ArrivalTime))
+            lock (_globalLock)
             {
-                return BadRequest();
+                if (_context.Flights.Any(f => f.Carrier == flight.Carrier &&
+                                          f.From.AirportCode == flight.From.AirportCode &&
+                                          f.To.AirportCode == flight.To.AirportCode &&
+                                          f.DepartureTime == flight.DepartureTime &&
+                                          f.ArrivalTime == flight.ArrivalTime))
+                {
+                    return StatusCode(409);
+                }
+
+                AddOrUpdateAirport(flight.From);
+                AddOrUpdateAirport(flight.To);
+
+                _context.Flights.Add(flight);
+                _context.SaveChanges();
             }
 
-            AirportStorage.AddAirport(flight.From);
-            AirportStorage.AddAirport(flight.To);
-
-            FlightStorage.AddFlight(flight);
             return Created("", flight);
-
         }
+
+        private void AddOrUpdateAirport(Airport airport)
+        {
+            var existingAirport = _context.Airports.FirstOrDefault(a => a.AirportCode == airport.AirportCode);
+            if (existingAirport == null)
+            {
+                _context.Airports.Add(airport);
+                _context.SaveChanges();
+            }
+            else
+            {
+                existingAirport.City = airport.City;
+                existingAirport.Country = airport.Country;
+                _context.SaveChanges();
+            }
+        }
+
+        private bool IsFlightValid(Flight flight)
+        {
+            return !(string.IsNullOrEmpty(flight.Carrier) ||
+                     string.IsNullOrEmpty(flight.From?.AirportCode) ||
+                     string.IsNullOrEmpty(flight.From?.Country) ||
+                     string.IsNullOrEmpty(flight.From?.City) ||
+                     string.IsNullOrEmpty(flight.To?.AirportCode) ||
+                     string.IsNullOrEmpty(flight.To?.Country) ||
+                     string.IsNullOrEmpty(flight.To?.City));
+        }
+
         [HttpDelete]
         [Route("flights/{id}")]
         public IActionResult DeleteFlight(int id)
         {
-            var flight = FlightStorage.GetFlightById(id);
-            if (flight != null)
+            lock (_globalLock)
             {
-                FlightStorage.DeleteFlightById(id);
+                var flight = _context.Flights.FirstOrDefault(f => f.Id == id);
+
+                if (flight != null)
+                {
+                    _context.Flights.Remove(flight);
+                    _context.SaveChanges();
+                }
             }
 
             return Ok();
         }
     }
 }
+
+
+

@@ -1,5 +1,7 @@
-using FlightPlanner.Handlers;
+﻿using FlightPlanner.Handlers;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FlightPlanner
 {
@@ -16,7 +18,21 @@ namespace FlightPlanner
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-                        
+
+            bool useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+
+            builder.Services.AddDbContextPool<FlightPlannerDbContext>(options =>
+            {
+                if (useInMemoryDatabase)
+                {
+                    options.UseInMemoryDatabase("flight-planner");
+                }
+                else
+                {
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("flight-planner"));
+                }
+            });
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -28,9 +44,10 @@ namespace FlightPlanner
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.MapControllers();
-            app.Run();
+
+            app.Run(); 
         }
     }
 }
+
